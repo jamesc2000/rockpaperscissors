@@ -1,0 +1,26 @@
+html {
+
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: #575757;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: auto 75% auto;
+    grid-template-rows: 50vh 50vh;
+}
+
+.player {
+    width: 100%;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    grid-column: 2;
+}
