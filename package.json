@@ -1,0 +1,16 @@
+{
+    "name": "rockpaperscissors",
+    "version": "1.0.0",
+    "description": "rock paper scissors",
+    "main": "game.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start-server": "node ./js/game.js"
+    },
+    "author": "James Laurence Cruz",
+    "license": "ISC",
+    "dependencies": {
+        "cors": "^2.8.5",
+        "express": "^4.17.1"
+    }
+}

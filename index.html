@@ -10,20 +10,34 @@
     <body>
         <div class="grid-container">
             <div class="side">
-                <div id="timer"></div>
+                <div id="timer">3</div>
                 <div></div>
                 <div></div>
             </div>
-            <div class="player" id="p1"></div>
-            <div class="player" id="p2"></div>
+            <div class="player" id="enemy"></div>
             <div class="side">
-                <div class="hoverable" id="rock">Rock</div>
-                <div class="hoverable" id="paper">Paper</div>
-                <div class="hoverable" id="scissors">Scissors</div>
+                <div>
+                    <form action="http://localhost/join" method="post">
+                        <input type="text" name="playerName" id="playerName" />
+                        <button type="submit">Join game</button>
+                    </form>
+                </div>
+                <div></div>
+                <div></div>
+            </div>
+            <div class="side">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+            <div class="player" id="me"></div>
+            <div class="side">
+                <div class="hoverable controls" id="rock">Rock</div>
+                <div class="hoverable controls" id="paper">Paper</div>
+                <div class="hoverable controls" id="scissors">Scissors</div>
             </div>
         </div>
 
-        <script src="js/game.js"></script>
         <script src="js/renderer.js"></script>
     </body>
 </html>
