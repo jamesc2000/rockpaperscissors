@@ -10,6 +10,24 @@ body {
         Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
 
+input {
+    background: #424242;
+    padding: 0 8px 0 8px;
+    outline: none;
+    border: none;
+
+    /* border-bottom: 1px solid rgb(145, 145, 145); */
+    height: calc(3rem - 1px);
+    width: 16rem;
+
+    font-size: 18px;
+    color: white;
+}
+
+input:hover {
+    background: #3f3f3f;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -20,15 +38,51 @@ body {
     grid-template-rows: 50vh 50vh;
 }
 
-.player {
-    width: 100%;
+.center-container {
+    display: grid;
+    grid-template-rows: auto auto;
+    grid-column: 2;
     border-top: 1px solid black;
     border-bottom: 1px solid black;
-    grid-column: 2;
+}
+
+.name {
+    display: flex;
+    justify-content: center;
+    margin: 3px;
+    padding: 3px;
+}
+
+#myName.name {
+    align-items: flex-start;
+}
+
+#enemyName.name {
+    align-items: flex-end;
+}
+
+#nameButton {
+    border-radius: 0;
+    outline: none;
+    border: none;
+
+    width: calc(3rem - 1px);
+    height: calc(3rem - 1px);
+
+    background: rgb(59, 153, 59);
+    color: white;
+    font-size: 13px;
+}
+
+#nameButton:hover {
+    background: rgb(42, 139, 42);
+}
+
+.player {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 40px;
+    font-size: 30px;
 }
 
 .side {
