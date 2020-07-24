@@ -4,6 +4,10 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="script-src 'self';"
+        />
         <link rel="stylesheet" href="style.css" />
         <title>Rock Paper Scissors</title>
     </head>
@@ -17,10 +21,10 @@
             <div class="player" id="enemy"></div>
             <div class="side">
                 <div>
-                    <form action="http://localhost/join" method="post">
+                    <div>
                         <input type="text" name="playerName" id="playerName" />
-                        <button type="submit">Join game</button>
-                    </form>
+                    </div>
+                    <button id="nameButton">Join game</button>
                 </div>
                 <div></div>
                 <div></div>
