@@ -19,6 +19,18 @@ let cors = require("cors");
 let bodyParser = require("body-parser");
 let server = express();
 
+let matchState = {
+    playerData: {
+        p1: {
+            name: "",
+            decision: ""
+        },
+        p2: {
+            name: "",
+            decision: ""
+        }
+    }
+};
 let players = [];
 
 server.use(cors());
@@ -28,52 +40,27 @@ server.post("/join", (req, res) => {
     console.log(`Player ${req.body.name} joined`);
     players.push(req.body.name);
 
-    // function createMatch() {
-    //     return new Promise((resolve, reject) => {
-    //         let match = {
-    //             timestamp: Date.now(),
-    //             playerData: {
-    //                 p1: await players[0],
-    //                 p2: await players[1]
-    //             }
-    //         };
-    //         resolve(match)
-    //     })
-    // }
-
-    // async function createMatch() {
-    //     let match = {
-    //         timestamp: Date.now(),
-    //         playerData: {
-    //             p1: await players[0],
-    //             p2: await players[1]
-    //         }
-    //     };
-    //     return match;
-    // }
-
-    // createMatch().then(match => {
-    //     res.json(match);
-    // });
-
     if (players.length == 2) {
         console.log("Starting game");
-        let match = {
-            playerData: {
-                p1: {
-                    name: players[0],
-                    decision: ""
-                },
-                p2: {
-                    name: players[1],
-                    decision: ""
-                }
-            },
-            playerNumber: 2
-        };
-        res.json(match);
-        console.log(JSON.stringify(match));
-    } else {
+        // let match = {
+        //     playerData: {
+        //         p1: {
+        //             name: players[0],
+        //             decision: ""
+        //         },
+        //         p2: {
+        //             name: players[1],
+        //             decision: ""
+        //         }
+        //     },
+        //     playerNumber: 2
+        // };
+
+        matchState.playerData.p2.name = players[1];
+        matchState.playerNumber = 2;
+        res.json(matchState);
+        console.log(JSON.stringify(matchState));
+    } else if (players.length == 1) {
         let match = {
             playerData: {
                 p1: {
@@ -83,8 +70,11 @@ server.post("/join", (req, res) => {
             },
             playerNumber: 1
         };
-        res.json(match);
-        console.log(JSON.stringify(match));
+
+        matchState.playerData.p1.name = players[0];
+        matchState.playerNumber = 1;
+        res.json(matchState);
+        console.log(JSON.stringify(matchState));
     }
 });
 
@@ -104,17 +94,21 @@ server.get("/confirm", (req, res) => {
             },
             playerNumber: 1
         };
-        res.json(match);
+        matchState.playerNumber = 1;
+        res.json(matchState);
         console.log("Response sent");
         players.length = 0;
     }
 });
 
-let matchState;
-
 server.post("/decision", (req, res) => {
-    matchState = req.body;
-    console.log(JSON.stringify(matchState));
+    if (req.body.playerNumber == 1) {
+        matchState.playerData.p1.decision = req.body.playerData.p1.decision;
+        console.log(JSON.stringify(matchState));
+    } else if (req.body.playerNumber == 2) {
+        matchState.playerData.p2.decision = req.body.playerData.p2.decision;
+        console.log(JSON.stringify(matchState));
+    }
 });
 
 server.listen(80, () => console.log("Server listening on port 80"));

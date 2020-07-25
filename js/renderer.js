@@ -156,4 +156,6 @@ function decide(decision) {
     fetch("http://localhost/decision", data)
         .then(res => {})
         .catch(error => console.error("Error: ", error));
+    console.log("Sent decision");
+    console.log(matchState);
 }
