@@ -18,6 +18,9 @@
 //       * https://stackoverflow.com/questions/6895564/difference-between-onbeforeunload-and-onunload
 
 // When joining game
+let playerNumber;
+let matchState = {};
+
 function join() {
     let playerData = {
         name: document.querySelector("#playerName").value
@@ -38,6 +41,8 @@ function join() {
                 if (data.playerNumber == 2) {
                     startTimer();
                     console.log("Match confirmed");
+                    matchState = data;
+                    enemyName.innerHTML = matchState.playerData.p1.name;
                 } else {
                     wait();
                     console.log("Waiting for other player");
@@ -57,6 +62,7 @@ document.addEventListener("keydown", function(event) {
 });
 
 // Wait for other player
+let enemyName = document.querySelector("#enemyName");
 function wait() {
     let data = {
         method: "GET",
@@ -68,6 +74,11 @@ function wait() {
         fetch("http://localhost/confirm", data)
             .then(res => {
                 console.log("Match confirmed");
+                res.json().then(data => {
+                    console.log(data);
+                    matchState = data;
+                    enemyName.innerHTML = matchState.playerData.p2.name;
+                });
                 startTimer();
                 clearInterval(waitLoop);
             })
@@ -75,7 +86,7 @@ function wait() {
                 console.log("Waiting for other player");
                 wait();
             });
-    }, 7 * 1000);
+    }, 3 * 1000);
 }
 
 // Timer
@@ -122,5 +133,27 @@ controls.forEach(element => {
     element.addEventListener("click", function() {
         // console.log("A control was clicked! " + this.innerHTML);
         me.innerHTML = this.innerHTML;
+        decide(me.innerHTML);
     });
 });
+
+// POST decision to server
+function decide(decision) {
+    if (matchState.playerNumber == 1) {
+        matchState.playerData.p1.decision = decision;
+    } else if (matchState.playerNumber == 2) {
+        matchState.playerData.p2.decision = decision;
+    }
+    let data = {
+        method: "POST",
+        mode: "cors",
+        credentials: "same-origin",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(matchState)
+    };
+    fetch("http://localhost/decision", data)
+        .then(res => {})
+        .catch(error => console.error("Error: ", error));
+}

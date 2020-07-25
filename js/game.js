@@ -26,7 +26,7 @@ server.use(bodyParser.json({ extended: true }));
 
 server.post("/join", (req, res) => {
     console.log(`Player ${req.body.name} joined`);
-    players.push(req.body);
+    players.push(req.body.name);
 
     // function createMatch() {
     //     return new Promise((resolve, reject) => {
@@ -60,8 +60,14 @@ server.post("/join", (req, res) => {
         console.log("Starting game");
         let match = {
             playerData: {
-                p1: players[0],
-                p2: players[1]
+                p1: {
+                    name: players[0],
+                    decision: ""
+                },
+                p2: {
+                    name: players[1],
+                    decision: ""
+                }
             },
             playerNumber: 2
         };
@@ -70,7 +76,10 @@ server.post("/join", (req, res) => {
     } else {
         let match = {
             playerData: {
-                p1: players[0]
+                p1: {
+                    name: players[0],
+                    decision: ""
+                }
             },
             playerNumber: 1
         };
@@ -84,13 +93,28 @@ server.get("/confirm", (req, res) => {
     if (players.length == 2) {
         let match = {
             playerData: {
-                p1: players[0],
-                p2: players[1]
+                p1: {
+                    name: players[0],
+                    decision: ""
+                },
+                p2: {
+                    name: players[1],
+                    decision: ""
+                }
             },
             playerNumber: 1
         };
         res.json(match);
+        console.log("Response sent");
+        players.length = 0;
     }
+});
+
+let matchState;
+
+server.post("/decision", (req, res) => {
+    matchState = req.body;
+    console.log(JSON.stringify(matchState));
 });
 
 server.listen(80, () => console.log("Server listening on port 80"));
