@@ -19,17 +19,9 @@ let cors = require("cors");
 let bodyParser = require("body-parser");
 let server = express();
 
-let matchState = {
-    playerData: {
-        p1: {
-            name: "",
-            decision: ""
-        },
-        p2: {
-            name: "",
-            decision: ""
-        }
-    }
+// Initial value for matchState
+var matchState = {
+    playerData: {}
 };
 let players = [];
 
@@ -39,6 +31,11 @@ server.use(bodyParser.json({ extended: true }));
 server.post("/join", (req, res) => {
     console.log(`Player ${req.body.name} joined`);
     players.push(req.body.name);
+
+    async function wait() {
+        let joined = await player2Joined;
+        return joined;
+    }
 
     if (players.length == 2) {
         console.log("Starting game");
@@ -56,22 +53,40 @@ server.post("/join", (req, res) => {
         //     playerNumber: 2
         // };
 
-        matchState.playerData.p2.name = players[1];
+        matchState.playerData.p2 = {
+            name: players[1],
+            decision: ""
+        };
+        player2Joined.resolve();
         matchState.playerNumber = 2;
         res.json(matchState);
         console.log(JSON.stringify(matchState));
     } else if (players.length == 1) {
-        let match = {
-            playerData: {
-                p1: {
-                    name: players[0],
-                    decision: ""
-                }
-            },
-            playerNumber: 1
-        };
+        // let match = {
+        //     playerData: {
+        //         p1: {
+        //             name: players[0],
+        //             decision: ""
+        //         }
+        //     },
+        //     playerNumber: 1
+        // };
 
-        matchState.playerData.p1.name = players[0];
+        // async function getPlayer2() {
+        //     const player2 = await matchState.playerData.p2;
+        //     return player2;
+        // }
+
+        // getPlayer2(matchState).then(() => {
+        //     matchState.playerNumber = 1;
+        //     res.json(this);
+        //     console.log("Promise fulfilled");
+        //     console.log(JSON.stringify(matchState));
+        // });
+        matchState.playerData.p1 = {
+            name: players[0],
+            decision: ""
+        };
         matchState.playerNumber = 1;
         res.json(matchState);
         console.log(JSON.stringify(matchState));
@@ -80,25 +95,29 @@ server.post("/join", (req, res) => {
 
 server.get("/confirm", (req, res) => {
     console.log("Get request received");
-    if (players.length == 2) {
-        let match = {
-            playerData: {
-                p1: {
-                    name: players[0],
-                    decision: ""
-                },
-                p2: {
-                    name: players[1],
-                    decision: ""
-                }
-            },
-            playerNumber: 1
-        };
-        matchState.playerNumber = 1;
-        res.json(matchState);
-        console.log("Response sent");
-        players.length = 0;
-    }
+    wait()
+        .then(() => {
+            // let match = {
+            //     playerData: {
+            //         p1: {
+            //             name: players[0],
+            //             decision: ""
+            //         },
+            //         p2: {
+            //             name: players[1],
+            //             decision: ""
+            //         }
+            //     },
+            //     playerNumber: 1
+            // };
+            matchState.playerNumber = 1;
+            res.json(matchState);
+            console.log("Response sent");
+            players.length = 0;
+        })
+        .catch(() => {
+            console.error("Error: ", error);
+        });
 });
 
 server.post("/decision", (req, res) => {

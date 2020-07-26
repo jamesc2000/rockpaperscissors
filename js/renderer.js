@@ -23,7 +23,8 @@ let matchState = {};
 
 function join() {
     let playerData = {
-        name: document.querySelector("#playerName").value
+        name: document.querySelector("#playerName").value,
+        decision: ""
     };
     let data = {
         method: "POST",
@@ -63,30 +64,40 @@ document.addEventListener("keydown", function(event) {
 
 // Wait for other player
 let enemyName = document.querySelector("#enemyName");
-function wait() {
+async function wait() {
     let data = {
         method: "GET",
         mode: "cors",
         credentials: "same-origin"
     };
-    var waitLoop = setInterval(function() {
-        console.log("Get request sent");
-        fetch("http://localhost/confirm", data)
-            .then(res => {
-                console.log("Match confirmed");
-                res.json().then(data => {
-                    console.log(data);
-                    matchState = data;
-                    enemyName.innerHTML = matchState.playerData.p2.name;
-                });
-                startTimer();
-                clearInterval(waitLoop);
-            })
-            .catch(() => {
-                console.log("Waiting for other player");
-                wait();
-            });
-    }, 3 * 1000);
+    // var waitLoop = setInterval(function() {
+    //     console.log("Get request sent");
+    //     fetch("http://localhost/confirm", data)
+    //         .then(res => {
+    //             console.log("Match confirmed");
+    //             res.json().then(data => {
+    //                 console.log(data);
+    //                 matchState = data;
+    //                 enemyName.innerHTML = matchState.playerData.p2.name;
+    //             });
+    //             startTimer();
+    //             clearInterval(waitLoop);
+    //         })
+    //         .catch(() => {
+    //             console.log("Waiting for other player");
+    //             wait();
+    //         });
+    // }, 3 * 1000);
+    console.log("Get request sent");
+    let response = await fetch("http://localhost/confirm", data);
+    console.log(response.statusText);
+    if (response.status == 502) {
+        await subscribe();
+    } else {
+        await response.json().then(data => {
+            console.log(data);
+        });
+    }
 }
 
 // Timer
