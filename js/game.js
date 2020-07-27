@@ -41,6 +41,7 @@ wss.on("connection", function connection(ws) {
                 );
                 if (waiting.length == 2) {
                     let buffer = {
+                        index: ongoingGames.length,
                         event: "ongoing",
                         players: [
                             {
@@ -59,19 +60,37 @@ wss.on("connection", function connection(ws) {
                     ongoingGames.push(buffer);
                     waiting.length = 0;
                     console.log(`${ongoingGames.length} games ongoing`);
-                    wss.clients.forEach(function each(client) {
-                        if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify(buffer));
-                        }
-                    });
+                    broadcast(buffer);
                 } else {
                     // Send error to client to try to rejoin again
                 }
                 break;
+            case "decision":
+                console.log("Someone decided");
+                // Update the server copy of the game data, in case
+                // in the future i might add in server side game logic
+                ongoingGames[data.index].players[
+                    data.playerNumber - 1
+                ].decision = data.players[data.playerNumber - 1].decision; //(index used to update only that specific game)
+                setTimeout(() => {
+                    broadcast(ongoingGames[data.index]);
+                }, 500);
 
+                break;
             default:
                 console.log(`Client: ${data.message}`);
                 break;
         }
     });
 });
+
+function broadcast(event, message) {
+    // Broadcast to all clients the game state
+    // (rework this later to only broadcast to relevant clients)
+
+    wss.clients.forEach(function each(client) {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(message));
+        }
+    });
+}

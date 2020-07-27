@@ -25,6 +25,8 @@ serverSocket.onopen = function(event) {
     display("Connection established");
 };
 
+let gameState = {}; // Keep a local copy of the game state from server's response on event 'ongoing'
+
 // Listen for WebSocket messages
 serverSocket.onmessage = function(message) {
     let data = JSON.parse(message.data);
@@ -33,12 +35,10 @@ serverSocket.onmessage = function(message) {
             playerNumber = data.playerNumber;
             break;
         case "ongoing":
-            display("Starting game!");
-            if (playerNumber === 1) {
-                display(data.players[1].name);
-            } else if (playerNumber === 2) {
-                display(data.players[0].name);
-            }
+            console.log(data);
+            gameState = data;
+            display(data.players[(playerNumber + 1) % 2].name); // Display the other player's name
+            startTimer();
             break;
         default:
             console.log(data);
@@ -48,7 +48,6 @@ serverSocket.onmessage = function(message) {
 
 // When joining game
 let playerNumber;
-let matchState = {};
 const playerName = document.querySelector("#playerName");
 
 function join() {
@@ -107,6 +106,7 @@ function startTimer() {
         // for testing purposes only
         if (timeLeft < 0) {
             clearInterval(randomize);
+            decide(me.innerHTML); // The decision only gets sent to the server once after timer
         }
     }, 100);
 }
@@ -116,9 +116,7 @@ let me = document.querySelector("#me");
 let controls = document.querySelectorAll(".controls");
 controls.forEach(element => {
     element.addEventListener("click", function() {
-        // console.log("A control was clicked! " + this.innerHTML);
         me.innerHTML = this.innerHTML;
-        decide(me.innerHTML);
     });
 });
 
@@ -127,5 +125,10 @@ function display(message) {
     enemyName.innerHTML = message;
 }
 
-// POST decision to server
-function decide(decision) {}
+// Send decision to server
+function decide(decision) {
+    gameState.event = "decision";
+    gameState.playerNumber = playerNumber;
+    gameState.players[playerNumber - 1].decision = decision;
+    serverSocket.send(JSON.stringify(gameState));
+}
