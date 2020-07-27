@@ -19,96 +19,38 @@ let cors = require("cors");
 let bodyParser = require("body-parser");
 let server = express();
 
+let waiting = [];
+let ongoingMatches = [];
 let matchState = {
-    playerData: {
-        p1: {
-            name: "",
-            decision: ""
-        },
-        p2: {
-            name: "",
-            decision: ""
-        }
-    }
+    playerData: {}
 };
-let players = [];
 
 server.use(cors());
 server.use(bodyParser.json({ extended: true }));
 
-server.post("/join", (req, res) => {
+server.post("/join", async (req, res) => {
     console.log(`Player ${req.body.name} joined`);
-    players.push(req.body.name);
-
-    if (players.length == 2) {
-        console.log("Starting game");
-        // let match = {
-        //     playerData: {
-        //         p1: {
-        //             name: players[0],
-        //             decision: ""
-        //         },
-        //         p2: {
-        //             name: players[1],
-        //             decision: ""
-        //         }
-        //     },
-        //     playerNumber: 2
-        // };
-
-        matchState.playerData.p2.name = players[1];
-        matchState.playerNumber = 2;
-        res.json(matchState);
-        console.log(JSON.stringify(matchState));
-    } else if (players.length == 1) {
-        let match = {
-            playerData: {
-                p1: {
-                    name: players[0],
-                    decision: ""
-                }
-            },
-            playerNumber: 1
-        };
-
-        matchState.playerData.p1.name = players[0];
-        matchState.playerNumber = 1;
-        res.json(matchState);
-        console.log(JSON.stringify(matchState));
+    waiting.push(req.body.name);
+    console.log(`${waiting.length} player waiting`);
+    if (waiting.length == 1) {
+        matchState.playerData.p1 = { name: req.body.name };
+        res.json({ playerNumber: 1 });
+    } else if (waiting.length == 2) {
+        matchState.playerData.p2 = { name: req.body.name };
+        res.json({ playerNumber: 2 });
     }
 });
 
-server.get("/confirm", (req, res) => {
-    console.log("Get request received");
-    if (players.length == 2) {
-        let match = {
-            playerData: {
-                p1: {
-                    name: players[0],
-                    decision: ""
-                },
-                p2: {
-                    name: players[1],
-                    decision: ""
-                }
-            },
-            playerNumber: 1
-        };
-        matchState.playerNumber = 1;
-        res.json(matchState);
-        console.log("Response sent");
-        players.length = 0;
-    }
-});
-
-server.post("/decision", (req, res) => {
+server.get("/start", async (req, res) => {
     if (req.body.playerNumber == 1) {
-        matchState.playerData.p1.decision = req.body.playerData.p1.decision;
-        console.log(JSON.stringify(matchState));
-    } else if (req.body.playerNumber == 2) {
-        matchState.playerData.p2.decision = req.body.playerData.p2.decision;
-        console.log(JSON.stringify(matchState));
+        if (matchState.playerData.p2 != undefined) {
+            setTimeout(() => {
+                res.json(matchState);
+            }, 3 * 1000);
+        }
     }
 });
+
+server.post("/decision", (req, res) => {});
 
 server.listen(80, () => console.log("Server listening on port 80"));

@@ -1,3 +1,5 @@
+import { start } from "repl";
+
 // Put all things related to rendering
 // things in the browser here
 
@@ -21,7 +23,7 @@
 let playerNumber;
 let matchState = {};
 
-function join() {
+async function join() {
     let playerData = {
         name: document.querySelector("#playerName").value
     };
@@ -34,23 +36,38 @@ function join() {
         },
         body: JSON.stringify(playerData)
     };
-    fetch("http://localhost/join", data)
-        .then(res => {
-            res.json().then(data => {
+    // fetch("http://localhost/join", data)
+    //     .then(res => {
+    //         res.json().then(data => {
+    //             console.log(data);
+    //             if (data.playerNumber == 2) {
+    //                 startTimer();
+    //                 console.log("Match confirmed");
+    //                 matchState = data;
+    //                 enemyName.innerHTML = matchState.playerData.p1.name;
+    //             } else {
+    //                 wait();
+    //                 console.log("Waiting for other player");
+    //             }
+    //         });
+    //     })
+    //     .catch(error => console.error("Error: ", error));
+    let response = await fetch("http://localhost/join", data);
+    if (response.status != 200) {
+        console.error("Error: ", response.statusText);
+    } else {
+        response
+            .json()
+            .then(data => {
                 console.log(data);
-                if (data.playerNumber == 2) {
-                    startTimer();
-                    console.log("Match confirmed");
-                    matchState = data;
-                    enemyName.innerHTML = matchState.playerData.p1.name;
-                } else {
-                    wait();
-                    console.log("Waiting for other player");
-                }
+                playerNumber = data.playerNumber;
+            })
+            .then(() => {
+                start();
             });
-        })
-        .catch(error => console.error("Error: ", error));
+    }
 }
+
 let joinBtn = document.querySelector("#nameButton");
 joinBtn.addEventListener("click", function() {
     join();
@@ -63,30 +80,21 @@ document.addEventListener("keydown", function(event) {
 
 // Wait for other player
 let enemyName = document.querySelector("#enemyName");
-function wait() {
+async function start() {
     let data = {
         method: "GET",
         mode: "cors",
-        credentials: "same-origin"
+        credentials: "same-origin",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ playerNumber: playerNumber })
     };
-    var waitLoop = setInterval(function() {
-        console.log("Get request sent");
-        fetch("http://localhost/confirm", data)
-            .then(res => {
-                console.log("Match confirmed");
-                res.json().then(data => {
-                    console.log(data);
-                    matchState = data;
-                    enemyName.innerHTML = matchState.playerData.p2.name;
-                });
-                startTimer();
-                clearInterval(waitLoop);
-            })
-            .catch(() => {
-                console.log("Waiting for other player");
-                wait();
-            });
-    }, 3 * 1000);
+    let response = await fetch("http://localhost/start", data);
+    if (response.status != 200) {
+        console.error("Error: ", response.statusText);
+    } else {
+    }
 }
 
 // Timer
