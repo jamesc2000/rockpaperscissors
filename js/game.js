@@ -14,43 +14,64 @@
 
 console.log("Server running");
 
-let express = require("express");
-let cors = require("cors");
-let bodyParser = require("body-parser");
-let server = express();
+const WebSocket = require("ws");
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
 
 let waiting = [];
-let ongoingMatches = [];
-let matchState = {
-    playerData: {}
-};
+let ongoingGames = [];
 
-server.use(cors());
-server.use(bodyParser.json({ extended: true }));
+const wss = new WebSocket.Server({ port: 80 });
 
-server.post("/join", async (req, res) => {
-    console.log(`Player ${req.body.name} joined`);
-    waiting.push(req.body.name);
-    console.log(`${waiting.length} player waiting`);
-    if (waiting.length == 1) {
-        matchState.playerData.p1 = { name: req.body.name };
-        res.json({ playerNumber: 1 });
-    } else if (waiting.length == 2) {
-        matchState.playerData.p2 = { name: req.body.name };
-        res.json({ playerNumber: 2 });
-    }
-});
+wss.on("connection", function connection(ws) {
+    ws.on("message", function incoming(message) {
+        let data = JSON.parse(message);
 
-server.get("/start", async (req, res) => {
-    if (req.body.playerNumber == 1) {
-        if (matchState.playerData.p2 != undefined) {
-            setTimeout(() => {
-                res.json(matchState);
-            }, 3 * 1000);
+        switch (data.event) {
+            case "join":
+                waiting.push(data.playerName);
+                let res = {
+                    event: "playerNumber",
+                    playerNumber: waiting.length
+                };
+                ws.send(JSON.stringify(res));
+                console.log(
+                    `Player ${data.playerName} joined as player ${waiting.length}`
+                );
+                if (waiting.length == 2) {
+                    let buffer = {
+                        event: "ongoing",
+                        players: [
+                            {
+                                num: 1,
+                                name: waiting[0],
+                                decision: ""
+                            },
+                            {
+                                num: 2,
+                                name: waiting[1],
+                                decision: ""
+                            }
+                        ]
+                    };
+                    console.log(JSON.stringify(buffer));
+                    ongoingGames.push(buffer);
+                    waiting.length = 0;
+                    console.log(`${ongoingGames.length} games ongoing`);
+                    wss.clients.forEach(function each(client) {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify(buffer));
+                        }
+                    });
+                } else {
+                    // Send error to client to try to rejoin again
+                }
+                break;
+
+            default:
+                console.log(`Client: ${data.message}`);
+                break;
         }
-    }
+    });
 });
-
-server.post("/decision", (req, res) => {});
-
-server.listen(80, () => console.log("Server listening on port 80"));

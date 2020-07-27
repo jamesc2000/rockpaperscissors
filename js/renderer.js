@@ -1,5 +1,3 @@
-import { start } from "repl";
-
 // Put all things related to rendering
 // things in the browser here
 
@@ -19,53 +17,47 @@ import { start } from "repl";
 // 5b. onBeforeUnload detects when a player leaves the game, POST this to server to cancel match
 //       * https://stackoverflow.com/questions/6895564/difference-between-onbeforeunload-and-onunload
 
+// Establish WebSocket connection
+let serverSocket = new WebSocket("ws://localhost:80");
+serverSocket.onopen = function(event) {
+    let data = { message: "Connection established" };
+    serverSocket.send(JSON.stringify(data));
+    display("Connection established");
+};
+
+// Listen for WebSocket messages
+serverSocket.onmessage = function(message) {
+    let data = JSON.parse(message.data);
+    switch (data.event) {
+        case "playerNumber":
+            playerNumber = data.playerNumber;
+            break;
+        case "ongoing":
+            display("Starting game!");
+            if (playerNumber === 1) {
+                display(data.players[1].name);
+            } else if (playerNumber === 2) {
+                display(data.players[0].name);
+            }
+            break;
+        default:
+            console.log(data);
+            break;
+    }
+};
+
 // When joining game
 let playerNumber;
 let matchState = {};
+const playerName = document.querySelector("#playerName");
 
-async function join() {
-    let playerData = {
-        name: document.querySelector("#playerName").value
-    };
+function join() {
     let data = {
-        method: "POST",
-        mode: "cors",
-        credentials: "same-origin",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(playerData)
+        event: "join",
+        playerName: playerName.value
     };
-    // fetch("http://localhost/join", data)
-    //     .then(res => {
-    //         res.json().then(data => {
-    //             console.log(data);
-    //             if (data.playerNumber == 2) {
-    //                 startTimer();
-    //                 console.log("Match confirmed");
-    //                 matchState = data;
-    //                 enemyName.innerHTML = matchState.playerData.p1.name;
-    //             } else {
-    //                 wait();
-    //                 console.log("Waiting for other player");
-    //             }
-    //         });
-    //     })
-    //     .catch(error => console.error("Error: ", error));
-    let response = await fetch("http://localhost/join", data);
-    if (response.status != 200) {
-        console.error("Error: ", response.statusText);
-    } else {
-        response
-            .json()
-            .then(data => {
-                console.log(data);
-                playerNumber = data.playerNumber;
-            })
-            .then(() => {
-                start();
-            });
-    }
+    serverSocket.send(JSON.stringify(data));
+    display("Waiting for other player to join");
 }
 
 let joinBtn = document.querySelector("#nameButton");
@@ -80,22 +72,7 @@ document.addEventListener("keydown", function(event) {
 
 // Wait for other player
 let enemyName = document.querySelector("#enemyName");
-async function start() {
-    let data = {
-        method: "GET",
-        mode: "cors",
-        credentials: "same-origin",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ playerNumber: playerNumber })
-    };
-    let response = await fetch("http://localhost/start", data);
-    if (response.status != 200) {
-        console.error("Error: ", response.statusText);
-    } else {
-    }
-}
+async function start() {}
 
 // Timer
 let enemy = document.querySelector("#enemy");
@@ -145,25 +122,10 @@ controls.forEach(element => {
     });
 });
 
-// POST decision to server
-function decide(decision) {
-    if (matchState.playerNumber == 1) {
-        matchState.playerData.p1.decision = decision;
-    } else if (matchState.playerNumber == 2) {
-        matchState.playerData.p2.decision = decision;
-    }
-    let data = {
-        method: "POST",
-        mode: "cors",
-        credentials: "same-origin",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(matchState)
-    };
-    fetch("http://localhost/decision", data)
-        .then(res => {})
-        .catch(error => console.error("Error: ", error));
-    console.log("Sent decision");
-    console.log(matchState);
+// Log function for #enemyName
+function display(message) {
+    enemyName.innerHTML = message;
 }
+
+// POST decision to server
+function decide(decision) {}
