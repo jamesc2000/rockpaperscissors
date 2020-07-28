@@ -42,17 +42,18 @@ wss.on("connection", function connection(ws) {
                 if (waiting.length == 2) {
                     let buffer = {
                         index: ongoingGames.length,
-                        event: "ongoing",
                         players: [
                             {
                                 num: 1,
                                 name: waiting[0],
-                                decision: ""
+                                decision: "",
+                                wins: 0
                             },
                             {
                                 num: 2,
                                 name: waiting[1],
-                                decision: ""
+                                decision: "",
+                                wins: 0
                             }
                         ]
                     };
@@ -60,7 +61,7 @@ wss.on("connection", function connection(ws) {
                     ongoingGames.push(buffer);
                     waiting.length = 0;
                     console.log(`${ongoingGames.length} games ongoing`);
-                    broadcast(buffer);
+                    broadcast("ongoing", buffer);
                 } else {
                     // Send error to client to try to rejoin again
                 }
@@ -73,7 +74,8 @@ wss.on("connection", function connection(ws) {
                     data.playerNumber - 1
                 ].decision = data.players[data.playerNumber - 1].decision; //(index used to update only that specific game)
                 setTimeout(() => {
-                    broadcast(ongoingGames[data.index]);
+                    broadcast("result", ongoingGames[data.index]);
+                    console.log(ongoingGames[data.index]);
                 }, 500);
 
                 break;
@@ -87,7 +89,7 @@ wss.on("connection", function connection(ws) {
 function broadcast(event, message) {
     // Broadcast to all clients the game state
     // (rework this later to only broadcast to relevant clients)
-
+    message.event = event;
     wss.clients.forEach(function each(client) {
         if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify(message));

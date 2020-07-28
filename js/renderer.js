@@ -22,7 +22,7 @@ let serverSocket = new WebSocket("ws://localhost:80");
 serverSocket.onopen = function(event) {
     let data = { message: "Connection established" };
     serverSocket.send(JSON.stringify(data));
-    display("Connection established");
+    display(enemyName, "Connection established");
 };
 
 let gameState = {}; // Keep a local copy of the game state from server's response on event 'ongoing'
@@ -37,8 +37,20 @@ serverSocket.onmessage = function(message) {
         case "ongoing":
             console.log(data);
             gameState = data;
-            display(data.players[(playerNumber + 1) % 2].name); // Display the other player's name
+            display(enemyName, data.players[(playerNumber + 1) % 2].name); // Display the other player's name
             startTimer();
+            break;
+        case "result":
+            console.log(data);
+            gameState = data;
+            let winner = result(gameState);
+            if (winner == -1) {
+                console.log(winner);
+                display(enemyName, "Tie!");
+            } else {
+                console.log(winner);
+                display(enemyName, `Winner: ${gameState.players[winner].name}`);
+            }
             break;
         default:
             console.log(data);
@@ -56,7 +68,7 @@ function join() {
         playerName: playerName.value
     };
     serverSocket.send(JSON.stringify(data));
-    display("Waiting for other player to join");
+    display(enemyName, "Waiting for other player to join");
 }
 
 let joinBtn = document.querySelector("#nameButton");
@@ -121,8 +133,8 @@ controls.forEach(element => {
 });
 
 // Log function for #enemyName
-function display(message) {
-    enemyName.innerHTML = message;
+function display(field, message) {
+    field.innerHTML = message;
 }
 
 // Send decision to server
@@ -131,4 +143,27 @@ function decide(decision) {
     gameState.playerNumber = playerNumber;
     gameState.players[playerNumber - 1].decision = decision;
     serverSocket.send(JSON.stringify(gameState));
+}
+
+// Result
+function result(data) {
+    display(enemy, data.players[playerNumber % 2].decision); // Display the other player's name
+    let decision1 = data.players[0].decision;
+    let decision2 = data.players[1].decision;
+    let d = ["Rock", "Paper", "Scissors"];
+    for (let i = 0; i < d.length; i++) {
+        if (decision1 === d[i]) {
+            decision1 = i;
+        }
+        if (decision2 === d[i]) {
+            decision2 = i;
+        }
+    }
+    if (decision1 === decision2) {
+        return -1;
+    } else if ((decision2 - decision1) % 3 >= 1) {
+        return 1;
+    } else if ((decision1 - decision2) % 3 >= 1) {
+        return 0;
+    }
 }
