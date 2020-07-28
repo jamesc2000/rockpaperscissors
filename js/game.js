@@ -14,120 +14,85 @@
 
 console.log("Server running");
 
-let express = require("express");
-let cors = require("cors");
-let bodyParser = require("body-parser");
-let server = express();
+const WebSocket = require("ws");
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
 
-// Initial value for matchState
-var matchState = {
-    playerData: {}
-};
-let players = [];
+let waiting = [];
+let ongoingGames = [];
 
-server.use(cors());
-server.use(bodyParser.json({ extended: true }));
+const wss = new WebSocket.Server({ port: 80 });
 
-server.post("/join", (req, res) => {
-    console.log(`Player ${req.body.name} joined`);
-    players.push(req.body.name);
+wss.on("connection", function connection(ws) {
+    ws.on("message", function incoming(message) {
+        let data = JSON.parse(message);
 
-    async function wait() {
-        let joined = await player2Joined;
-        return joined;
-    }
+        switch (data.event) {
+            case "join":
+                waiting.push(data.playerName);
+                let res = {
+                    event: "playerNumber",
+                    playerNumber: waiting.length
+                };
+                ws.send(JSON.stringify(res));
+                console.log(
+                    `Player ${data.playerName} joined as player ${waiting.length}`
+                );
+                if (waiting.length == 2) {
+                    let buffer = {
+                        index: ongoingGames.length,
+                        players: [
+                            {
+                                num: 1,
+                                name: waiting[0],
+                                decision: "",
+                                wins: 0
+                            },
+                            {
+                                num: 2,
+                                name: waiting[1],
+                                decision: "",
+                                wins: 0
+                            }
+                        ]
+                    };
+                    console.log(JSON.stringify(buffer));
+                    ongoingGames.push(buffer);
+                    waiting.length = 0;
+                    console.log(`${ongoingGames.length} games ongoing`);
+                    broadcast("ongoing", buffer);
+                } else {
+                    // Send error to client to try to rejoin again
+                }
+                break;
+            case "decision":
+                console.log("Someone decided");
+                // Update the server copy of the game data, in case
+                // in the future i might add in server side game logic
+                ongoingGames[data.index].players[
+                    data.playerNumber - 1
+                ].decision = data.players[data.playerNumber - 1].decision; //(index used to update only that specific game)
+                setTimeout(() => {
+                    broadcast("result", ongoingGames[data.index]);
+                    console.log(ongoingGames[data.index]);
+                }, 500);
 
-    if (players.length == 2) {
-        console.log("Starting game");
-        // let match = {
-        //     playerData: {
-        //         p1: {
-        //             name: players[0],
-        //             decision: ""
-        //         },
-        //         p2: {
-        //             name: players[1],
-        //             decision: ""
-        //         }
-        //     },
-        //     playerNumber: 2
-        // };
-
-        matchState.playerData.p2 = {
-            name: players[1],
-            decision: ""
-        };
-        player2Joined.resolve();
-        matchState.playerNumber = 2;
-        res.json(matchState);
-        console.log(JSON.stringify(matchState));
-    } else if (players.length == 1) {
-        // let match = {
-        //     playerData: {
-        //         p1: {
-        //             name: players[0],
-        //             decision: ""
-        //         }
-        //     },
-        //     playerNumber: 1
-        // };
-
-        // async function getPlayer2() {
-        //     const player2 = await matchState.playerData.p2;
-        //     return player2;
-        // }
-
-        // getPlayer2(matchState).then(() => {
-        //     matchState.playerNumber = 1;
-        //     res.json(this);
-        //     console.log("Promise fulfilled");
-        //     console.log(JSON.stringify(matchState));
-        // });
-        matchState.playerData.p1 = {
-            name: players[0],
-            decision: ""
-        };
-        matchState.playerNumber = 1;
-        res.json(matchState);
-        console.log(JSON.stringify(matchState));
-    }
+                break;
+            default:
+                console.log(`Client: ${data.message}`);
+                break;
+        }
+    });
 });
 
-server.get("/confirm", (req, res) => {
-    console.log("Get request received");
-    wait()
-        .then(() => {
-            // let match = {
-            //     playerData: {
-            //         p1: {
-            //             name: players[0],
-            //             decision: ""
-            //         },
-            //         p2: {
-            //             name: players[1],
-            //             decision: ""
-            //         }
-            //     },
-            //     playerNumber: 1
-            // };
-            matchState.playerNumber = 1;
-            res.json(matchState);
-            console.log("Response sent");
-            players.length = 0;
-        })
-        .catch(() => {
-            console.error("Error: ", error);
-        });
-});
-
-server.post("/decision", (req, res) => {
-    if (req.body.playerNumber == 1) {
-        matchState.playerData.p1.decision = req.body.playerData.p1.decision;
-        console.log(JSON.stringify(matchState));
-    } else if (req.body.playerNumber == 2) {
-        matchState.playerData.p2.decision = req.body.playerData.p2.decision;
-        console.log(JSON.stringify(matchState));
-    }
-});
-
-server.listen(80, () => console.log("Server listening on port 80"));
+function broadcast(event, message) {
+    // Broadcast to all clients the game state
+    // (rework this later to only broadcast to relevant clients)
+    message.event = event;
+    wss.clients.forEach(function each(client) {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(message));
+        }
+    });
+}
