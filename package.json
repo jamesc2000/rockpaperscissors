@@ -13,5 +13,9 @@
         "cors": "^2.8.5",
         "express": "^4.17.1",
         "ws": "^7.3.1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jamesc2000/rockpaperscissors"
     }
 }
