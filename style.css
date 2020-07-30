@@ -59,6 +59,7 @@ input:hover {
 
 #enemyName.name {
     align-items: flex-end;
+    text-align: center;
 }
 
 #nameButton {
@@ -105,4 +106,14 @@ input:hover {
     cursor: pointer;
     -moz-user-select: none;
     -webkit-user-select: none;
+}
+
+@media screen and (max-width: 600px) {
+    #playerName {
+        max-width: 40vw;
+    }
+    .controls {
+        max-width: 100%;
+        font-size: 20px;
+    }
 }
