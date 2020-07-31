@@ -43,17 +43,22 @@ serverSocket.onmessage = function(message) {
         case "result":
             console.log(data);
             gameState = data;
-            let winner = result(gameState);
-            if (winner == -1) {
-                console.log(winner);
-                display(enemyName, "Tie!");
-            } else {
-                console.log(winner);
-                display(enemyName, `Winner: ${gameState.players[winner].name}`);
-            }
-            if (winner == playerNumber - 1) {
-                playerWins.innerHTML++;
-            }
+            setTimeout(() => {
+                let winner = result(gameState);
+                if (winner == -1) {
+                    console.log(winner);
+                    display(enemyName, "Tie!");
+                } else {
+                    console.log(winner);
+                    display(
+                        enemyName,
+                        `Winner: ${gameState.players[winner].name}`
+                    );
+                }
+                if (winner == playerNumber - 1) {
+                    playerWins.innerHTML++;
+                }
+            }, 1500);
             break;
         default:
             console.log(data);
@@ -165,9 +170,9 @@ function result(data) {
     }
     if (decision1 === decision2) {
         return -1;
-    } else if ((decision2 - decision1) % 3 >= 1) {
+    } else if ((decision2 - decision1 + 3) % 3 == 1) {
         return 1;
-    } else if ((decision1 - decision2) % 3 >= 1) {
+    } else if ((decision1 - decision2 + 3) % 3 == 1) {
         return 0;
     }
 }
