@@ -18,7 +18,7 @@
 //       * https://stackoverflow.com/questions/6895564/difference-between-onbeforeunload-and-onunload
 
 // Establish WebSocket connection
-let serverSocket = new WebSocket("wss://13.76.99.35:443");
+let serverSocket = new WebSocket("ws://localhost:80");
 serverSocket.onopen = function(event) {
     let data = { message: "Connection established" };
     serverSocket.send(JSON.stringify(data));
@@ -37,7 +37,7 @@ serverSocket.onmessage = function(message) {
         case "ongoing":
             console.log(data);
             gameState = data;
-            display(enemyName, data.players[(playerNumber + 1) % 2].name); // Display the other player's name
+            display(enemyName, data.players[playerNumber % 2].name); // Display the other player's name
             startTimer();
             break;
         case "result":
@@ -51,6 +51,9 @@ serverSocket.onmessage = function(message) {
                 console.log(winner);
                 display(enemyName, `Winner: ${gameState.players[winner].name}`);
             }
+            if (winner == playerNumber - 1) {
+                playerWins.innerHTML++;
+            }
             break;
         default:
             console.log(data);
@@ -60,6 +63,7 @@ serverSocket.onmessage = function(message) {
 
 // When joining game
 let playerNumber;
+const playerWins = document.querySelector("#playerWins");
 const playerName = document.querySelector("#playerName");
 
 function join() {
@@ -147,7 +151,7 @@ function decide(decision) {
 
 // Result
 function result(data) {
-    display(enemy, data.players[playerNumber % 2].decision); // Display the other player's name
+    display(enemy, data.players[playerNumber % 2].decision); // Display the other player's decision
     let decision1 = data.players[0].decision;
     let decision2 = data.players[1].decision;
     let d = ["Rock", "Paper", "Scissors"];
