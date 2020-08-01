@@ -22,7 +22,7 @@ const bodyParser = require("body-parser");
 let waiting = [];
 let ongoingGames = [];
 
-const wss = new WebSocket.Server({ port: 80 });
+const wss = new WebSocket.Server({ port: 380 });
 
 wss.on("connection", function connection(ws) {
     ws.on("message", function incoming(message) {
@@ -68,16 +68,16 @@ wss.on("connection", function connection(ws) {
                 break;
             case "decision":
                 console.log("Someone decided");
-                // Update the server copy of the game data, in case
-                // in the future i might add in server side game logic
-                ongoingGames[data.index].players[
-                    data.playerNumber - 1
-                ].decision = data.players[data.playerNumber - 1].decision; //(index used to update only that specific game)
-                setTimeout(() => {
+                console.log(JSON.stringify(data));
+                let currDecision = data.players[data.playerNumber - 1].decision;
+                currGame = ongoingGames[data.index];
+                currGame.players[data.playerNumber - 1].decision = currDecision;
+                let d1 = currGame.players[0].decision;
+                let d2 = currGame.players[1].decision;
+                if (d1 !== "" && d2 !== "") {
                     broadcast("result", ongoingGames[data.index]);
-                    console.log(ongoingGames[data.index]);
-                }, 500);
-
+                    console.log(JSON.stringify(ongoingGames[data.index]));
+                }
                 break;
             default:
                 console.log(`Client: ${data.message}`);

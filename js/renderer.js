@@ -18,7 +18,7 @@
 //       * https://stackoverflow.com/questions/6895564/difference-between-onbeforeunload-and-onunload
 
 // Establish WebSocket connection
-let serverSocket = new WebSocket("ws://localhost:80");
+let serverSocket = new WebSocket("ws://localhost:380");
 serverSocket.onopen = function(event) {
     let data = { message: "Connection established" };
     serverSocket.send(JSON.stringify(data));
@@ -33,6 +33,8 @@ serverSocket.onmessage = function(message) {
     switch (data.event) {
         case "playerNumber":
             playerNumber = data.playerNumber;
+            enemyName.classList = "name"; // Reset colors of enemyName
+            playerName.disabled = true; // Disable name input
             break;
         case "ongoing":
             console.log(data);
@@ -43,22 +45,23 @@ serverSocket.onmessage = function(message) {
         case "result":
             console.log(data);
             gameState = data;
-            setTimeout(() => {
-                let winner = result(gameState);
-                if (winner == -1) {
-                    console.log(winner);
-                    display(enemyName, "Tie!");
-                } else {
-                    console.log(winner);
-                    display(
-                        enemyName,
-                        `Winner: ${gameState.players[winner].name}`
-                    );
-                }
-                if (winner == playerNumber - 1) {
-                    playerWins.innerHTML++;
-                }
-            }, 1500);
+            let winner = result(gameState);
+
+            if (winner == -1) {
+                console.log(winner);
+                display(enemyName, "Tie!");
+            } else {
+                console.log(winner);
+                display(enemyName, `Winner: ${gameState.players[winner].name}`);
+            }
+
+            if (winner == playerNumber - 1) {
+                playerWins.innerHTML++;
+                enemyName.classList += " win";
+            } else {
+                enemyName.classList += " loss";
+            }
+            playerName.disabled = false;
             break;
         default:
             console.log(data);
@@ -90,11 +93,9 @@ document.addEventListener("keydown", function(event) {
     }
 });
 
-// Wait for other player
-let enemyName = document.querySelector("#enemyName");
-async function start() {}
-
 // Timer
+let player = document.getElementsByClassName("player");
+let enemyName = document.querySelector("#enemyName");
 let enemy = document.querySelector("#enemy");
 let timer = document.querySelector("#timer");
 function startTimer() {
@@ -106,22 +107,14 @@ function startTimer() {
 
         if (timeLeft < 0) {
             clearInterval(time);
-            // fetch("http://localhost/", postMe)
-            //     .then(res => console.log(res))
-            //     .catch(() => console.log("Error"));
         }
     }, 1000);
 
     // Randomize enemy display
     let curr = 0;
     var randomize = setInterval(function() {
-        // console.log("heyo " + curr);
-        enemy.innerHTML = controls[curr].innerHTML;
+        enemy.innerHTML = controls[curr % 2].innerHTML;
         curr++;
-
-        if (curr == 3) {
-            curr = 0;
-        }
 
         // Remove this when we have a working backend
         // for testing purposes only
@@ -141,7 +134,7 @@ controls.forEach(element => {
     });
 });
 
-// Log function for #enemyName
+// Display message on #enemyName
 function display(field, message) {
     field.innerHTML = message;
 }

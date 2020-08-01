@@ -116,6 +116,14 @@ input:hover {
     -webkit-user-select: none;
 }
 
+.loss {
+    color: rgb(219, 113, 113);
+}
+
+.win {
+    color: rgb(95, 199, 95);
+}
+
 @media screen and (max-width: 600px) {
     #playerName {
         max-width: 40vw;
