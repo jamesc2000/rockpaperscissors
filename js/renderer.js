@@ -41,12 +41,14 @@ serverSocket.onmessage = function(message) {
             gameState = data;
             display(enemyName, data.players[playerNumber % 2].name); // Display the other player's name
             startTimer();
+            randomize(); // Random effect on enemy's decision
             break;
         case "result":
             console.log(data);
+            console.time("result");
             gameState = data;
+            display(enemy, data.players[playerNumber % 2].decision); // Display the other player's decision
             let winner = result(gameState);
-
             if (winner == -1) {
                 console.log(winner);
                 display(enemyName, "Tie!");
@@ -62,6 +64,7 @@ serverSocket.onmessage = function(message) {
                 enemyName.classList += " loss";
             }
             playerName.disabled = false;
+            console.timeEnd("result");
             break;
         default:
             console.log(data);
@@ -99,7 +102,7 @@ let enemyName = document.querySelector("#enemyName");
 let enemy = document.querySelector("#enemy");
 let timer = document.querySelector("#timer");
 function startTimer() {
-    let timeLeft = 3;
+    let timeLeft = 2;
     var time = setInterval(function() {
         // console.log("as");
         timer.innerHTML = timeLeft;
@@ -107,20 +110,22 @@ function startTimer() {
 
         if (timeLeft < 0) {
             clearInterval(time);
+            decide(me.innerHTML); // The decision only gets sent to the server once after timer
         }
     }, 1000);
+}
 
-    // Randomize enemy display
+// Randomize enemy display
+function randomize(toggle) {
     let curr = 0;
-    var randomize = setInterval(function() {
-        enemy.innerHTML = controls[curr % 2].innerHTML;
+    var random = setInterval(function() {
+        enemy.innerHTML = controls[curr].innerHTML;
         curr++;
-
-        // Remove this when we have a working backend
-        // for testing purposes only
-        if (timeLeft < 0) {
-            clearInterval(randomize);
-            decide(me.innerHTML); // The decision only gets sent to the server once after timer
+        if (curr == 3) {
+            curr = 0;
+        }
+        if (gameState.event != "ongoing") {
+            clearInterval(random);
         }
     }, 100);
 }
@@ -141,15 +146,16 @@ function display(field, message) {
 
 // Send decision to server
 function decide(decision) {
+    console.time("sendDecision");
     gameState.event = "decision";
     gameState.playerNumber = playerNumber;
     gameState.players[playerNumber - 1].decision = decision;
     serverSocket.send(JSON.stringify(gameState));
+    console.timeEnd("sendDecision");
 }
 
 // Result
 function result(data) {
-    display(enemy, data.players[playerNumber % 2].decision); // Display the other player's decision
     let decision1 = data.players[0].decision;
     let decision2 = data.players[1].decision;
     let d = ["Rock", "Paper", "Scissors"];

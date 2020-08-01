@@ -27,7 +27,6 @@ const wss = new WebSocket.Server({ port: 380 });
 wss.on("connection", function connection(ws) {
     ws.on("message", function incoming(message) {
         let data = JSON.parse(message);
-
         switch (data.event) {
             case "join":
                 waiting.push(data.playerName);
@@ -42,6 +41,7 @@ wss.on("connection", function connection(ws) {
                 if (waiting.length == 2) {
                     let buffer = {
                         index: ongoingGames.length,
+                        decided: 0,
                         players: [
                             {
                                 num: 1,
@@ -67,16 +67,17 @@ wss.on("connection", function connection(ws) {
                 }
                 break;
             case "decision":
-                console.log("Someone decided");
-                console.log(JSON.stringify(data));
                 let currDecision = data.players[data.playerNumber - 1].decision;
                 currGame = ongoingGames[data.index];
                 currGame.players[data.playerNumber - 1].decision = currDecision;
+                currGame.decided++; // Having a counter for each player decided is faster than checking the strings if empty
                 let d1 = currGame.players[0].decision;
                 let d2 = currGame.players[1].decision;
-                if (d1 !== "" && d2 !== "") {
+                // console.time("if");
+                if (currGame.decided == 2) {
                     broadcast("result", ongoingGames[data.index]);
                     console.log(JSON.stringify(ongoingGames[data.index]));
+                    // console.timeEnd("if");
                 }
                 break;
             default:
