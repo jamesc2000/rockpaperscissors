@@ -30,11 +30,12 @@ wss.on("connection", function connection(ws) {
         switch (data.event) {
             case "join":
                 waiting.push(data.playerName);
-                let res = {
+                let buffer = {
                     event: "playerNumber",
-                    playerNumber: waiting.length
+                    playerNumber: waiting.length,
+                    index: ongoingGames.length
                 };
-                ws.send(JSON.stringify(res));
+                ws.send(JSON.stringify(buffer));
                 console.log(
                     `Player ${data.playerName} joined as player ${waiting.length}`
                 );

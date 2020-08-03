@@ -33,38 +33,46 @@ serverSocket.onmessage = function(message) {
     switch (data.event) {
         case "playerNumber":
             playerNumber = data.playerNumber;
+            gameState.index = data.index;
             enemyName.classList = "name"; // Reset colors of enemyName
             playerName.disabled = true; // Disable name input
             break;
         case "ongoing":
-            console.log(data);
-            gameState = data;
-            display(enemyName, data.players[playerNumber % 2].name); // Display the other player's name
-            startTimer();
-            randomize(); // Random effect on enemy's decision
+            if (data.index === gameState.index) {
+                console.log(data);
+                gameState = data;
+                display(enemyName, data.players[playerNumber % 2].name); // Display the other player's name
+                startTimer();
+                randomize(); // Random effect on enemy's decision
+            }
             break;
         case "result":
-            console.log(data);
-            console.time("result");
-            gameState = data;
-            display(enemy, data.players[playerNumber % 2].decision); // Display the other player's decision
-            let winner = result(gameState);
-            if (winner == -1) {
-                console.log(winner);
-                display(enemyName, "Tie!");
-            } else {
-                console.log(winner);
-                display(enemyName, `Winner: ${gameState.players[winner].name}`);
-            }
+            if (data.index === gameState.index) {
+                console.log(data);
+                console.time("result");
+                gameState = data;
+                display(enemy, data.players[playerNumber % 2].decision); // Display the other player's decision
+                let winner = result(gameState);
+                if (winner == -1) {
+                    console.log(winner);
+                    display(enemyName, "Tie!");
+                } else {
+                    console.log(winner);
+                    display(
+                        enemyName,
+                        `Winner: ${gameState.players[winner].name}`
+                    );
+                }
 
-            if (winner == playerNumber - 1) {
-                playerWins.innerHTML++;
-                enemyName.classList += " win";
-            } else {
-                enemyName.classList += " loss";
+                if (winner == playerNumber - 1) {
+                    playerWins.innerHTML++;
+                    enemyName.classList += " win";
+                } else {
+                    enemyName.classList += " loss";
+                }
+                playerName.disabled = false;
+                console.timeEnd("result");
             }
-            playerName.disabled = false;
-            console.timeEnd("result");
             break;
         default:
             console.log(data);
