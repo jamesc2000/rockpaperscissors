@@ -16,13 +16,18 @@ console.log("Server running");
 
 const WebSocket = require("ws");
 const express = require("express");
+const http = require("http");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
 let waiting = [];
 let ongoingGames = [];
 
-const wss = new WebSocket.Server({ port: 380 });
+const app = express();
+
+const server = http.createServer(app);
+
+const wss = new WebSocket.Server({ server });
 
 wss.on("connection", function connection(ws) {
     ws.on("message", function incoming(message) {
@@ -98,3 +103,7 @@ function broadcast(event, message) {
         }
     });
 }
+
+server.listen(80, () => {
+    console.log(`Server started on ${server.address.port}`);
+});
