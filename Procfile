@@ -1,1 +1,1 @@
-web: node game.js
+web: sudo node game.js
