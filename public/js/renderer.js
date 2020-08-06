@@ -18,7 +18,9 @@
 //       * https://stackoverflow.com/questions/6895564/difference-between-onbeforeunload-and-onunload
 
 // Establish WebSocket connection
-let serverSocket = new WebSocket("ws://localhost:80");
+let serverSocket = new WebSocket(
+    "ws://rockpaperscissors-server-app.azurewebsites.net:80"
+);
 serverSocket.onopen = function(event) {
     let data = { message: "Connection established" };
     serverSocket.send(JSON.stringify(data));
