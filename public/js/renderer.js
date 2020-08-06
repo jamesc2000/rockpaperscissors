@@ -19,7 +19,7 @@
 
 // Establish WebSocket connection
 let serverSocket = new WebSocket(
-    "ws://rockpaperscissors-server-app.azurewebsites.net:80"
+    "ws://rockpaperscissors-server-app.herokuapp.com/:8080"
 );
 serverSocket.onopen = function(event) {
     let data = { message: "Connection established" };
