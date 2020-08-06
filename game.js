@@ -29,6 +29,8 @@ const server = http.createServer(app);
 
 const wss = new WebSocket.Server({ server });
 
+app.use(express.static("public"));
+
 wss.on("connection", function connection(ws) {
     ws.on("message", function incoming(message) {
         let data = JSON.parse(message);
@@ -103,7 +105,9 @@ function broadcast(event, message) {
         }
     });
 }
+
 const PORT = process.env.PORT || 8080;
+
 server.listen(PORT, () => {
     console.log(`Server started on ${PORT}`);
 });
