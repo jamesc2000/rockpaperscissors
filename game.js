@@ -104,6 +104,6 @@ function broadcast(event, message) {
     });
 }
 
-server.listen(80, () => {
+server.listen(8080, () => {
     console.log(`Server started on ${server.address.port}`);
 });
