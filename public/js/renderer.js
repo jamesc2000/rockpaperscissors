@@ -17,10 +17,22 @@
 // 5b. onBeforeUnload detects when a player leaves the game, POST this to server to cancel match
 //       * https://stackoverflow.com/questions/6895564/difference-between-onbeforeunload-and-onunload
 
-// Establish WebSocket connection
+async function getPort() {
+    const params = {
+        method: "POST",
+        mode: "same-origin",
+        cache: "no-cache",
+        credentials: "same-origin"
+    };
+    let port = await fetch("/port", params);
+    return port;
+}
+
 let serverSocket = new WebSocket(
-    `ws://rockpaperscissors-server-app.herokuapp.com/:${process.env.PORT}`
+    `ws://rockpaperscissors-server-app.herokuapp.com/}`
 );
+
+// Establish WebSocket connection
 serverSocket.onopen = function(event) {
     let data = { message: "Connection established" };
     serverSocket.send(JSON.stringify(data));
