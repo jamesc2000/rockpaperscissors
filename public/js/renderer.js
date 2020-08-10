@@ -1,34 +1,29 @@
-// Put all things related to rendering
-// things in the browser here
+// This script is executed by the client in the browser
+// 1. Open a websocket connection to the server
+// 2. Send a message to the server that the connection was established
+// 3. Listen for messages from the server with the events "playerNumber", "ongoing", and "result" (Server-fired events)
+//      playerNumber - the server tells the client whether it is the 1st or 2nd player to join
+//      ongoing      - tells the clients to start their timers
+//                   - this is also the event where the names of the players are received and displayed on the client
+//      result       - tells the clients the decisions of both players, when this fires the client evaluates who the winner is
+//
+// 4. Client-fired events
+//      join         - tells the server the name of this player (fired when join button is pressed)
+//      decide       - tells the server what the decision of this player is
+// ---------------------------------------------------------
 
-// Local browser lifecycle
-// 1. Join game
-//    a. POST ${name}
-//    b. Wait for game confirmation (GET request server periodically, then
-//       wait for response: {player1Name, player2Name, playerNumber})
-//       * player1Name, player2Name is needed for rendering name of other player on UI
-// 2. Start timer on game start (on fulfillment of GET responses)
-// 3. Player decides on rock, paper, or scissors
-// 4. Send decision to server to be evaluated for win conditions
-//    a. POST ${decision}
-//    b. Wait for response on winner
-//    c. Display response on UI
-// 5a. Repeat
-// 5b. onBeforeUnload detects when a player leaves the game, POST this to server to cancel match
-//       * https://stackoverflow.com/questions/6895564/difference-between-onbeforeunload-and-onunload
+// Keep a local copy of the game state from server's response on event 'ongoing'
+let gameState = {};
 
+// Establish WebSocket connection
 let serverSocket = new WebSocket(
     `wss://rockpaperscissors-server-app.herokuapp.com/}`
 );
-
-// Establish WebSocket connection
 serverSocket.onopen = function(event) {
     let data = { message: "Connection established" };
     serverSocket.send(JSON.stringify(data));
     display(enemyName, "Connection established");
 };
-
-let gameState = {}; // Keep a local copy of the game state from server's response on event 'ongoing'
 
 // Listen for WebSocket messages
 serverSocket.onmessage = function(message) {
@@ -115,7 +110,6 @@ let timer = document.querySelector("#timer");
 function startTimer() {
     let timeLeft = 2;
     var time = setInterval(function() {
-        // console.log("as");
         timer.innerHTML = timeLeft;
         timeLeft--;
 

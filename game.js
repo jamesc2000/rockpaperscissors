@@ -1,24 +1,28 @@
-// This file is ran by the server, this opens up endpoints
-// for the rest api and also handles game state and logic
-
-// Game lifecycle should be
-// 1. Wait for 2 players to join
-// 2. Start game
-// 3. Evaluate win conditions
-// 4. Check if a player left the game
-
-// Game outcomes
-// 1. Player 1 win / other player left midgame
-// 2. Player 2 win / other player left midgame
-// 3. Draw/No Win
+// This is the WebSocket server running on the server
+// The game state object is stored on the array ongoingGames, with its index accessible to the object
+// Structure of gameState:
+// {
+//   index: *this object's index on the ongoingGames array*,
+//   decided: *this number denotes how many players have sent their decisions,
+//   players: [
+//     {
+//       num: *playerNumber,
+//       name: *name of the player,
+//       decision: *whether the player chose rock/paper/scissors,
+//       wins: *to be implemented
+//     },
+//     {
+//       *repeat for second player
+//     }
+//   ]
+// }
+//
 
 console.log("Server running");
 
 const WebSocket = require("ws");
 const express = require("express");
 const http = require("http");
-const cors = require("cors");
-const bodyParser = require("body-parser");
 
 let waiting = [];
 let ongoingGames = [];
@@ -36,6 +40,7 @@ wss.on("connection", function connection(ws) {
         let data = JSON.parse(message);
         switch (data.event) {
             case "join":
+                // When a user clicks join, they get added to an array of waiting players
                 waiting.push(data.playerName);
                 let buffer = {
                     event: "playerNumber",
@@ -46,6 +51,8 @@ wss.on("connection", function connection(ws) {
                 console.log(
                     `Player ${data.playerName} joined as player ${waiting.length}`
                 );
+                // Once that array has 2 players, the server creates a game that is stored in
+                // ongoingGames. Then the server broadcasts the gameState for their specific game
                 if (waiting.length == 2) {
                     let buffer = {
                         index: ongoingGames.length,
@@ -71,21 +78,20 @@ wss.on("connection", function connection(ws) {
                     console.log(`${ongoingGames.length} games ongoing`);
                     broadcast("ongoing", buffer);
                 } else {
-                    // Send error to client to try to rejoin again
+                    // TODO: Send error to client to try to rejoin again
                 }
                 break;
             case "decision":
+                // Updates the current gameState for their respective game when a user decides
                 let currDecision = data.players[data.playerNumber - 1].decision;
                 currGame = ongoingGames[data.index];
                 currGame.players[data.playerNumber - 1].decision = currDecision;
                 currGame.decided++; // Having a counter for each player decided is faster than checking the strings if empty
                 let d1 = currGame.players[0].decision;
                 let d2 = currGame.players[1].decision;
-                // console.time("if");
                 if (currGame.decided == 2) {
                     broadcast("result", ongoingGames[data.index]);
                     console.log(JSON.stringify(ongoingGames[data.index]));
-                    // console.timeEnd("if");
                 }
                 break;
             default:
@@ -106,6 +112,7 @@ function broadcast(event, message) {
     });
 }
 
+// Tells the express server to listen at the port heroku declared or 8080
 const PORT = process.env.PORT || 8080;
 
 server.listen(PORT, () => {
