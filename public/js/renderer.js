@@ -86,7 +86,7 @@ const playerName = document.querySelector("#playerName");
 function join() {
     let data = {
         event: "join",
-        playerName: playerName.value
+        playerName: DOMPurify.sanitize(playerName.value)
     };
     serverSocket.send(JSON.stringify(data));
     display(enemyName, "Waiting for other player to join");
@@ -146,7 +146,9 @@ controls.forEach(element => {
 
 // Display message on #enemyName
 function display(field, message) {
+    let clean = DOMPurify.sanitize(message);
     field.innerHTML = message;
+    console.log(clean);
 }
 
 // Send decision to server

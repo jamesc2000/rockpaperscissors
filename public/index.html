@@ -6,7 +6,7 @@
         <meta http-equiv="X-UA-Compatible" content="ie=edge" />
         <meta
             http-equiv="Content-Security-Policy"
-            content="script-src 'self';"
+            content="script-src 'self' https://cdnjs.cloudflare.com;"
         />
         <link rel="stylesheet" href="style.css" />
         <title>Rock Paper Scissors</title>
@@ -63,7 +63,11 @@
                 <div class="hoverable controls" id="scissors">Scissors</div>
             </div>
         </div>
-
+        <script
+            crossorigin="anonymous"
+            integrity="sha512-Pkzp1f+T81Q7K8Dhj8Sc6SPhl+4D5JEe9TTjJLy7xbv+EdxStU9uRXEVzYOqjP+s6+lDAXo3nZ04szSG71ArhA=="
+            src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.0.12/purify.min.js"
+        ></script>
         <script src="js/renderer.js"></script>
     </body>
 </html>
